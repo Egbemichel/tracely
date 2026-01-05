@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "708826960721",
+    "project_id": "highland-62941",
+    "storage_bucket": "highland-62941.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708826960721:android:4aaaa0f1e02526b3963970",
+        "android_client_info": {
+          "package_name": "com.example.tracely_clean"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXIsKSWqqkr-wAL-tGVvr1sq0Vm8_Zkx0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

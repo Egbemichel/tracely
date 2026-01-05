@@ -4,7 +4,9 @@ import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/theme.dart';
 import '../data/dummy.dart'; // <-- import to access getUnreadCount()
+import '../screens/auth/login/login.dart';
 import '../screens/notifications/notification_screen.dart';
+import '../services/auth_service.dart';
 
 class WelcomeHeader extends StatelessWidget {
   final String userName;
@@ -47,10 +49,6 @@ class WelcomeHeader extends StatelessWidget {
               showDot: getUnreadCount() > 0, // 🔥 dynamically controlled
             ),
             const SizedBox(width: 10),
-            _buildIconButton(
-              icon: IconsaxPlusLinear.logout,
-              onPressed: () {},
-            ),
           ],
         )
       ],

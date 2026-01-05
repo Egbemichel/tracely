@@ -13,7 +13,7 @@ import '../screens/splash/splash_screen.dart';
 import '../widgets/screen_wrapper.dart';
 
 final appRouter = GoRouter(
-  initialLocation: HomeScreen.path,
+  initialLocation: SplashScreen.path,
 
   routes: [
     // NON-TAB SCREENS
@@ -72,8 +72,7 @@ final appRouter = GoRouter(
       name: 'trail-detail',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        final trail = dummyTrails.firstWhere((t) => t.id == id);
-        return TrailDetailScreen(trail: trail);
+        return TrailDetailScreen(trailId: id);
       },
     ),
   ],

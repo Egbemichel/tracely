@@ -74,7 +74,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _buildIndicator(isActive: _currentPage == 0),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   _buildIndicator(isActive: _currentPage == 1),
                 ],
               ),
@@ -137,6 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const Text(
             'You jump between links and\nvideos, but lose track of what\nhelped.',
             textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 17,
               color: Color(0xFF9E9E9E),
@@ -149,98 +150,119 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildSecondPage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // ----------------------------------------
-          // LEFT CARD (no rotation)
-          // ----------------------------------------
-          Positioned(
-            top: 1,
-            left: -1,
-            child: Image.asset(
-              "assets/images/card_left.png",
-              width: 160,
-              fit: BoxFit.contain,
-            ),
-          ),
-
-          // ----------------------------------------
-          // RIGHT CARD (scaled up)
-          // ----------------------------------------
-          Positioned(
-            top: 40,
-            right: -10,
-            child: Transform.scale(
-              scale: 1.25,
-              alignment: Alignment.center,
-              child: Image.asset(
-                "assets/images/card_right.png",
-                width: 260,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-
-          // ----------------------------------------
-          // FLOATING DOTS
-          // ----------------------------------------
-          Positioned(top: 90, left: 40, child: _dot(8)),
-          Positioned(top: 150, right: 30, child: _dot(10)),
-          Positioned(top: 200, right: 120, child: _dot(7)),
-          Positioned(top: 120, left: 140, child: _dot(6)),
-
-          // ----------------------------------------
-          // MAIN CONTENT
-          // ----------------------------------------
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 150),
-
-              SizedBox(
-                height: 351,
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/onboarding_2.png',
-                    height: 351,
-                    fit: BoxFit.contain,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // ----------------------------------------
+                  // LEFT CARD (no rotation)
+                  // ----------------------------------------
+                  Positioned(
+                    top: 1,
+                    left: -1,
+                    child: Image.asset(
+                      "assets/images/card_left.png",
+                      width: 110,
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                ),
+
+                  // ----------------------------------------
+                  // RIGHT CARD (scaled up)
+                  // ----------------------------------------
+                  Positioned(
+                    top: 40,
+                    right: -10,
+                    child: Transform.scale(
+                      scale: 1.25,
+                      alignment: Alignment.center,
+                      child: Image.asset(
+                        "assets/images/card_right.png",
+                        width: 260,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+
+                  // ----------------------------------------
+                  // FLOATING DOTS
+                  // ----------------------------------------
+                  Positioned(top: 90, left: 40, child: _dot(8)),
+                  Positioned(top: 150, right: 30, child: _dot(10)),
+                  Positioned(top: 200, right: 120, child: _dot(7)),
+                  Positioned(top: 120, left: 140, child: _dot(6)),
+
+                  // ----------------------------------------
+                  // MAIN CONTENT
+                  // ----------------------------------------
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+
+                      Flexible(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 351,
+                            minHeight: 200,
+                          ),
+                          child: Center(
+                            child: Image.asset(
+                              'assets/images/onboarding_2.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 48),
+
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'Tracely maps your\nlearning journey',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w400,
+                            color: TracelyTheme.primary700,
+                            height: 1.2,
+                          ),
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          'Your activity becomes a simple\ntrail you can revisit anytime.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 17,
+                            color: Color(0xFF9E9E9E),
+                            height: 1.5,
+                          ),
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 48),
-
-              const Text(
-                'Tracely maps your\nlearning journey',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w400,
-                  color: TracelyTheme.primary700,
-                  height: 1.2,
-                ),
-                overflow: TextOverflow.fade,
-              ),
-
-              const SizedBox(height: 16),
-
-              const Text(
-                'Your activity becomes a simple\ntrail you can revisit anytime.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 17,
-                  color: Color(0xFF9E9E9E),
-                  height: 1.5,
-                ),
-                overflow: TextOverflow.fade,
-              ),
-            ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -249,7 +271,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: TracelyTheme.secondary500.withOpacity(0.25),
+        color: TracelyTheme.secondary500.withValues(alpha: 0.25),
         shape: BoxShape.circle,
       ),
     );

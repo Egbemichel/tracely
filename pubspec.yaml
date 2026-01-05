@@ -46,10 +46,23 @@ dependencies:
   firebase_auth: ^6.1.3
   cloud_firestore: ^6.1.1
   firebase_messaging: ^16.1.0
+  webview_flutter: ^4.13.0
+  webview_flutter_android: ^4.10.1
+  webview_flutter_wkwebview: ^3.15.0
+
+# Flutter Launcher Icons configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo-complete.png"
+  adaptive_icon_background: "#2CC5A7"
+  adaptive_icon_foreground: "assets/images/logo-complete.png"
+  remove_alpha_ios: true
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

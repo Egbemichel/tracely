@@ -1,14 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:uuid/uuid.dart';
 import '../../app/theme.dart';
-import '../../models/resource.dart';
-import '../../services/firestore_service.dart';
 import '../../services/google_search_service.dart';
 import '../../widgets/searchbar.dart';
 import '../../widgets/search_result_card.dart';
 import '../../widgets/search_result.dart' as widget_models;
+import '../../widgets/resource_preview_drawer.dart';
 
 /// ===============================
 /// CONFIG
@@ -146,38 +143,30 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _onResultTap(SearchResult result) async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final uuid = const Uuid();
+    print('🔥 Search result tapped: ${result.title}');
 
-    final trail = await FirestoreService().getOrCreateTrail(
-      userId: userId,
-      title: result.title,
+    // Show the resource preview drawer
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ResourcePreviewDrawer(
+        searchResult: _mapToWidgetSearchResult(result),
+      ),
     );
-
-    final resource = Resource()
-      ..id = uuid.v4()
-      ..userId = userId
-      ..trailId = trail.id
-      ..type = _mapToResourceType(result.type)
-      ..title = result.title
-      ..source = result.url
-      ..metadata = {'snippet': result.snippet}
-      ..createdAt = DateTime.now()
-      ..lastVisited = DateTime.now();
-
-    await FirestoreService().saveResource(resource);
-
   }
 
-  ResourceType _mapToResourceType(SearchResultType type) {
-    switch (type) {
-      case SearchResultType.youtube:
-        return ResourceType.youtube;
-      case SearchResultType.pdf:
-        return ResourceType.document;
-      case SearchResultType.web:
-        return ResourceType.link;
-    }
+  // Helper method to convert SearchResult to widget SearchResult
+  widget_models.SearchResult _mapToWidgetSearchResult(SearchResult result) {
+    return widget_models.SearchResult(
+      type: _mapToResourceSourceType(result.type),
+      iconAsset: _getIconAsset(result.type),
+      domain: result.source,
+      url: result.url,
+      title: result.title,
+      description: result.snippet,
+      detail: _getDetail(result.type),
+    );
   }
 
 
@@ -304,6 +293,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
 
     return ListView.builder(
+      primary: false, // Prevents ListView from blocking parent gestures
       physics: const BouncingScrollPhysics(),
       itemCount: _results.length,
       itemBuilder: (context, index) {

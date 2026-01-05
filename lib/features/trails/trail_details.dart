@@ -1,27 +1,120 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
-
 import '../../app/theme.dart';
-import '../../data/dummy.dart';
 import '../../widgets/resource_timeline.dart';
-
 import '../../models/trail.dart';
 import '../../models/resource.dart';
+import '../../services/firestore_service.dart';
 
-class TrailDetailScreen extends StatelessWidget {
-  final Trail trail;
+class TrailDetailScreen extends StatefulWidget {
+  final String trailId;
 
-  const TrailDetailScreen({super.key, required this.trail});
+  const TrailDetailScreen({super.key, required this.trailId});
+
+  @override
+  State<TrailDetailScreen> createState() => _TrailDetailScreenState();
+}
+
+class _TrailDetailScreenState extends State<TrailDetailScreen> {
+  final _firestoreService = FirestoreService();
+  Trail? _trail;
+  List<Resource> _resources = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrailData();
+  }
+
+  Future<void> _loadTrailData() async {
+    try {
+      // Load trail details
+      final trail = await _firestoreService.getTrailById(widget.trailId);
+
+      // Load resources for this trail
+      final resources = await _firestoreService.getResourcesForTrail(widget.trailId);
+
+      setState(() {
+        _trail = trail;
+        _resources = resources;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading trail data: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Get resources for this trail from dummy data
-    final List<Resource> trailResources = getResourcesForTrail(trail.id);
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-    // Sort resources by lastVisited date (most recent first), handling nullable lastVisited
+    if (_trail == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _error != null ? 'Error loading trail' : 'Trail not found',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final trail = _trail!;
+
+    // Use real resources loaded from Firestore
+    final List<Resource> trailResources = _resources;
+
+    // Sort resources by lastVisited date (most recent first)
     final List<Resource> sortedResources = List<Resource>.from(trailResources)
-      ..sort((a, b) => (b.lastVisited ?? DateTime(1970)).compareTo(a.lastVisited ?? DateTime(1970)));
-
+      ..sort((a, b) => b.lastVisited.compareTo(a.lastVisited));
 
     // Simple date formatter (e.g., "Nov 22")
     String formatDate(DateTime date) =>
@@ -91,7 +184,7 @@ class TrailDetailScreen extends StatelessWidget {
                         // Resource Count and Last Updated
                         Text(
                           // Calculate total resources from the list
-                          '${trailResources.length} ${trailResources.length == 1 ? 'resource' : 'resources'} • Last updated on ${formatDate(trail.lastAccessed ?? trail.createdAt)}',
+                          '${trailResources.length} ${trailResources.length == 1 ? 'resource' : 'resources'} • Last updated on ${formatDate(trail.lastAccessed)}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -137,16 +230,49 @@ class TrailDetailScreen extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    children: [
-                      ...List.generate(sortedResources.length, (index) {
-                        return ResourceTimelineItem(
-                          resource: sortedResources[index],
-                          isLast: index == sortedResources.length - 1,
-                        );
-                      }),
-                    ],
-                  ),
+                  child: sortedResources.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40.0),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.library_books_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade300,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No resources yet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Resources you add to this trail will appear here',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            ...List.generate(sortedResources.length, (index) {
+                              return ResourceTimelineItem(
+                                resource: sortedResources[index],
+                                isLast: index == sortedResources.length - 1,
+                              );
+                            }),
+                          ],
+                        ),
                 ),
                 const SizedBox(height: 100), // Space for the bottom nav bar
               ],

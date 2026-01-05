@@ -3,14 +3,49 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 
 import '../app/theme.dart';
-import '../data/dummy.dart';
 import '../models/trail.dart';
+import '../services/firestore_service.dart';
 
-class TrailCard extends StatelessWidget{
+class TrailCard extends StatefulWidget {
   final Trail trail;
   final bool isBanner;
 
   const TrailCard({super.key, required this.trail, required this.isBanner});
+
+  @override
+  State<TrailCard> createState() => _TrailCardState();
+}
+
+class _TrailCardState extends State<TrailCard> {
+  final _firestoreService = FirestoreService();
+  int _resourceCount = 0;
+  bool _isLoadingCount = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadResourceCount();
+  }
+
+  Future<void> _loadResourceCount() async {
+    try {
+      final resources = await _firestoreService.getResourcesForTrail(widget.trail.id);
+      if (mounted) {
+        setState(() {
+          _resourceCount = resources.length;
+          _isLoadingCount = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading resource count: $e');
+      if (mounted) {
+        setState(() {
+          _resourceCount = 0;
+          _isLoadingCount = false;
+        });
+      }
+    }
+  }
 
   // Helper for the small info chips (dynamic)
   Widget _buildStatChip(int itemCount, IconData icon, Color cardBackgroundColor) {
@@ -37,13 +72,12 @@ class TrailCard extends StatelessWidget{
     );
   }
 
-
   Widget _buildCircularIcon(IconData icon, Color iconColor) {
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: Colors.white, // background color of the circle
+        color: Colors.white,
         shape: BoxShape.circle,
         border: Border.all(
           color: TracelyTheme.primary900.withValues(alpha: 0.2),
@@ -67,14 +101,13 @@ class TrailCard extends StatelessWidget{
     );
   }
 
-
   Widget _buildCircularImage(String assetPath) {
     return Container(
       width: 34,
       height: 34,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white, // outer background
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade300, width: 2),
       ),
       child: ClipOval(
@@ -87,9 +120,9 @@ class TrailCard extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    Color cardColor = isBanner ? TracelyTheme.primary500 : TracelyTheme.primary100;
-    Color textColor = isBanner ? TracelyTheme.neutral0 : TracelyTheme.primary900;
-    Color subTextColor = isBanner ? TracelyTheme.neutral100 : TracelyTheme.primary900;
+    Color cardColor = widget.isBanner ? TracelyTheme.primary500 : TracelyTheme.primary100;
+    Color textColor = widget.isBanner ? TracelyTheme.neutral0 : TracelyTheme.primary900;
+    Color subTextColor = widget.isBanner ? TracelyTheme.neutral100 : TracelyTheme.primary900;
 
     return Animate(
       effects: const [
@@ -102,7 +135,7 @@ class TrailCard extends StatelessWidget{
           color: cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            if(!isBanner) BoxShadow(color: TracelyTheme.neutral200.withValues(alpha: 0.1), offset: const Offset(0, 3), blurRadius: 5)
+            if(!widget.isBanner) BoxShadow(color: TracelyTheme.neutral200.withValues(alpha: 0.1), offset: const Offset(0, 3), blurRadius: 5)
           ]
         ),
         child: Column(
@@ -116,7 +149,7 @@ class TrailCard extends StatelessWidget{
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        trail.title,
+                        widget.trail.title,
                         style: TextStyle(
                           color: textColor,
                           fontFamily: "PlusJakartaSans",
@@ -126,10 +159,10 @@ class TrailCard extends StatelessWidget{
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
                       ),
-                      if (isBanner) ...[
+                      if (widget.isBanner) ...[
                         const SizedBox(height: 5),
                         Text(
-                          trail.subtitle,
+                          widget.trail.subtitle,
                           style: TextStyle(
                             color: subTextColor,
                             fontFamily: "PlusJakartaSans",
@@ -143,7 +176,7 @@ class TrailCard extends StatelessWidget{
                   ),
                 ),
                 const SizedBox(width: 10),
-                if (isBanner)
+                if (widget.isBanner)
                   Transform.rotate(
                     angle: 50 * 3.1415926535 / 180, // 50 degrees in radians
                     child: Container(
@@ -163,19 +196,45 @@ class TrailCard extends StatelessWidget{
             ),
             const SizedBox(height: 15),
             // Progress tracking will be added when Trail model supports it
-            if (!isBanner)
+            if (!widget.isBanner)
             // Social/Media Icons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // LEFT: Chip - Get resources for this trail from dummy data
-                  _buildStatChip(getResourcesForTrail(trail.id).length, IconsaxPlusLinear.folder_2, cardColor),
+                  // LEFT: Chip - Real resource count from Firestore
+                  _isLoadingCount
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: TracelyTheme.primary900,
+                              width: 1,
+                            ),
+                          ),
+                          child: const SizedBox(
+                            width: 60,
+                            height: 14,
+                            child: Center(
+                              child: SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: TracelyTheme.primary900,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : _buildStatChip(_resourceCount, IconsaxPlusLinear.folder_2, cardColor),
 
                   // RIGHT: Icons in a row
                   SizedBox(
                     height: 40,
-                    width: 99, // adjust as needed
+                    width: 99,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -184,7 +243,7 @@ class TrailCard extends StatelessWidget{
                           child: _buildCircularIcon(IconsaxPlusLinear.note_2, TracelyTheme.links),
                         ),
                         Positioned(
-                          left: 22, // overlap amount
+                          left: 22,
                           child: _buildCircularIcon(IconsaxPlusLinear.global, Color(0xffFF7A00)),
                         ),
                         Positioned(
@@ -198,7 +257,6 @@ class TrailCard extends StatelessWidget{
                       ],
                     ),
                   )
-
                 ],
               )
           ]
@@ -207,3 +265,4 @@ class TrailCard extends StatelessWidget{
     );
   }
 }
+

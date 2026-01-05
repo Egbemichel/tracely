@@ -96,14 +96,14 @@ Trail _createTrail({
   required DateTime createdAt,
   required DateTime lastAccessed,
 }) {
-  final trail = Trail()
-    ..id = id
-    ..userId = 'user1'
-    ..title = title
-    ..subtitle = subtitle
-    ..createdAt = createdAt
-    ..lastAccessed = lastAccessed;
-  return trail;
+  return Trail(
+    id: id,
+    userId: 'user1',
+    title: title,
+    subtitle: subtitle,
+    createdAt: createdAt,
+    lastAccessed: lastAccessed,
+  );
 }
 
 // Dummy data with lastAccessed dates
